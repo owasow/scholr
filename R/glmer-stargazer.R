@@ -113,17 +113,26 @@ star_glmer <- function(..., exponentiate = FALSE, type = NULL, star_args = list(
     # Extract nobs for add.lines
     nobs_vals <- sapply(models, stats::nobs)
 
+    # Merge omit.stat: always include "n", plus any user-specified stats
+    user_omit_stat <- star_args$omit.stat
+    merged_omit_stat <- unique(c("n", user_omit_stat))
+    star_args$omit.stat <- NULL  # Remove from star_args to avoid duplicate
+
+    # Merge add.lines: prepend Observations row to any user-specified lines
+    user_add_lines <- star_args$add.lines
+    merged_add_lines <- c(list(c("Observations", nobs_vals)), user_add_lines)
+    star_args$add.lines <- NULL  # Remove from star_args to avoid duplicate
+
     # Build stargazer call
     # Use c() with unlist to flatten template_models into the args list
-    # Hide default nobs (which is wrong) and add correct values via add.lines
     sg_args <- c(
         template_models,
         list(
             type = type,
             coef = coef_list,
             se = se_list,
-            omit.stat = "n",
-            add.lines = list(c("Observations", nobs_vals))
+            omit.stat = merged_omit_stat,
+            add.lines = merged_add_lines
         ),
         star_args
     )
