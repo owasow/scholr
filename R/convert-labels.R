@@ -126,15 +126,18 @@ convert_labels <- function(model, extracted = FALSE, use_defaults = TRUE) {
     labs2 <- labs
 
     # Apply custom mappings first (if any)
+    # Uses first-match-wins: once a variable is labeled, it won't be overwritten
     custom <- get_label_mappings()
+    already_labeled <- rep(FALSE, length(labs))
     if (!is.null(custom) && length(custom) > 0) {
         for (i in seq_along(custom)) {
             pattern <- names(custom)[i]
             replacement <- custom[i]
-            matches <- stringr::str_detect(labs, pattern) |
-                       stringr::str_detect(labs_norm, pattern)
+            matches <- (stringr::str_detect(labs, pattern) |
+                       stringr::str_detect(labs_norm, pattern)) & !already_labeled
             if (any(matches)) {
                 labs2[matches] <- replacement
+                already_labeled[matches] <- TRUE
             }
         }
     }
