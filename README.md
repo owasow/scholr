@@ -1,11 +1,11 @@
-# tablr
+# scholr
 
 A collection of helper functions for creating publication-ready tables in R Markdown documents. Provides wrappers for `stargazer`, `kable`, and `xtable` with sensible defaults, automatic output format detection (LaTeX/HTML/text), and customizable variable label conversion for regression tables.
 ## Installation
 
 ```r
 # Install from GitHub
-devtools::install_github("owasow/tablr")
+devtools::install_github("owasow/scholr")
 ```
 
 ## Features
@@ -23,7 +23,7 @@ devtools::install_github("owasow/tablr")
 ## Quick Start
 
 ```r
-library(tablr)
+library(scholr)
 
 # Basic regression table with auto-detected format
 model <- lm(mpg ~ wt + hp + cyl, data = mtcars)
@@ -39,7 +39,7 @@ star_ft(model, covariate.labels = labels)
 The key feature is the ability to set project-specific variable label mappings:
 
 ```r
-library(tablr)
+library(scholr)
 
 # Register custom mappings for your project
 set_label_mappings(c(
@@ -85,7 +85,7 @@ Custom mappings take precedence over defaults.
 Stargazer doesn't properly handle `glmer` models from `lme4`. The `star_glmer()` function solves this by extracting coefficients and standard errors and using stargazer's override parameters:
 
 ```r
-library(tablr)
+library(scholr)
 library(lme4)
 
 # Fit a mixed-effects logistic regression
@@ -114,7 +114,7 @@ The delta method correctly transforms standard errors when exponentiating:
 Convert text to title case following the New York Times Manual of Style:
 
 ```r
-library(tablr)
+library(scholr)
 
 to_title_case("the quick brown fox")
 # [1] "The Quick Brown Fox"

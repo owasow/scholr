@@ -1,4 +1,4 @@
-# tablr 0.2.0
+# scholr 0.2.0
 
 ## New Features
 
@@ -12,7 +12,7 @@
   cleanup of location names (e.g., "New York, NY" to "New York") and expansion
   of common abbreviations (e.g., "Univ." to "University", "Pr" to "Press").
 
-# tablr 0.1.0
+# scholr 0.1.0
 
 * Initial release with table formatting utilities for R Markdown and LaTeX
 * Helper functions for stargazer, kable, and xtable

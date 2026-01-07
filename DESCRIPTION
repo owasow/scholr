@@ -1,5 +1,5 @@
-Package: tablr
-Title: Table Formatting Utilities for R Markdown and LaTeX
+Package: scholr
+Title: Scholarly Writing Utilities for R Markdown and LaTeX
 Version: 0.2.0
 Authors@R:
     person("Omar", "Wasow", , "owasow@gmail.com", role = c("aut", "cre"))

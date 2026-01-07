@@ -6,7 +6,7 @@
 NULL
 
 # Package environment to store custom label mappings
-.tablr_env <- new.env()
+.scholr_env <- new.env()
 
 #' Set Custom Label Mappings
 #'
@@ -30,11 +30,11 @@ NULL
 #' # Clear all custom mappings
 #' set_label_mappings(list(), append = FALSE)
 set_label_mappings <- function(mappings, append = TRUE) {
-    if (append && exists("custom_mappings", envir = .tablr_env)) {
-        existing <- get("custom_mappings", envir = .tablr_env)
+    if (append && exists("custom_mappings", envir = .scholr_env)) {
+        existing <- get("custom_mappings", envir = .scholr_env)
         mappings <- c(mappings, existing)
     }
-    assign("custom_mappings", mappings, envir = .tablr_env)
+    assign("custom_mappings", mappings, envir = .scholr_env)
     invisible(mappings)
 }
 
@@ -47,8 +47,8 @@ set_label_mappings <- function(mappings, append = TRUE) {
 #' @examples
 #' get_label_mappings()
 get_label_mappings <- function() {
-    if (exists("custom_mappings", envir = .tablr_env)) {
-        get("custom_mappings", envir = .tablr_env)
+    if (exists("custom_mappings", envir = .scholr_env)) {
+        get("custom_mappings", envir = .scholr_env)
     } else {
         NULL
     }
@@ -60,8 +60,8 @@ get_label_mappings <- function() {
 #'
 #' @export
 clear_label_mappings <- function() {
-    if (exists("custom_mappings", envir = .tablr_env)) {
-        rm("custom_mappings", envir = .tablr_env)
+    if (exists("custom_mappings", envir = .scholr_env)) {
+        rm("custom_mappings", envir = .scholr_env)
     }
     invisible(NULL)
 }
