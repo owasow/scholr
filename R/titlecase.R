@@ -15,6 +15,11 @@ NULL
 #' @param text Character string to convert
 #' @param small_words Character vector of words to keep lowercase (unless at
 #'   start/end of title). Defaults to NYT style guide list.
+#' @param preserve_acronyms Character vector of acronyms to preserve in
+#'   uppercase. Default includes common academic acronyms. All-caps words
+#'   are also automatically preserved.
+#' @param software_packages Character vector of software/package names to
+#'   keep in lowercase and wrap in braces for BibTeX protection.
 #'
 #' @return Character string in title case
 #' @export
@@ -24,6 +29,9 @@ NULL
 #' \itemize{
 #'   \item URLs, email addresses, and domains are preserved as-is
 #'   \item Words with internal capitals (e.g., "iPhone", "McDonald's") are preserved
+#'   \item All-caps words are preserved as acronyms (e.g., "US", "LGBTQ")
+#'   \item LaTeX commands (starting with backslash) are preserved
+#'   \item Abbreviations with periods (e.g., "U.S.", "U.K.") are preserved
 #'   \item Small words are capitalized at the start/end of titles and after : ; ? !
 #'   \item Handles text in parentheses, brackets, and quotes appropriately
 #' }
@@ -32,12 +40,26 @@ NULL
 #' to_title_case("the quick brown fox")
 #' to_title_case("a tale of two cities")
 #' to_title_case("the iPhone: a revolution in mobile technology")
+#' to_title_case("US policy on LGBTQ rights")
 #'
 to_title_case <- function(text,
                           small_words = c("a", "an", "and", "as", "at", "but",
                                           "by", "en", "for", "if", "in", "of",
                                           "on", "or", "the", "to", "v", "v.",
-                                          "via", "vs", "vs.", "with")) {
+                                          "via", "vs", "vs.", "with"),
+                          preserve_acronyms = c("US", "UK", "USA", "UN", "EU",
+                                                "LGBTQ", "LGBTQ+", "LGBT",
+                                                "HIV", "AIDS", "BET", "AM", "PM",
+                                                "SSRN", "ICPSR", "CMPS", "NORC",
+                                                "PS", "NYU", "UCLA", "MIT", "UFW",
+                                                "NAACP", "CEO", "GDP", "GNP",
+                                                "FBI", "CIA", "NSA", "NASA",
+                                                "ANES", "CCES", "NES", "GSS",
+                                                "ACS", "CPS", "IPUMS"),
+                          software_packages = c("stm", "mice", "ggplot2",
+                                                "ggridges", "tidyverse", "dplyr",
+                                                "tidyr", "purrr", "stringr",
+                                                "lubridate", "forcats", "readr")) {
 
     if (is.na(text) || text == "") return(text)
 
@@ -65,6 +87,39 @@ to_title_case <- function(text,
         # Check if there are capitals after the first character
         middle <- substring(clean_word, 2)
         grepl("[A-Z]", middle)
+    }
+
+    # Helper function to check if word is an acronym (all caps, 2+ letters)
+    is_acronym <- function(word) {
+        # Remove leading/trailing punctuation for checking
+        clean_word <- gsub("^[^a-zA-Z0-9+]+|[^a-zA-Z0-9+]+$", "", word)
+        if (nchar(clean_word) < 2) return(FALSE)
+
+        # Check if in explicit preserve list
+        if (toupper(clean_word) %in% toupper(preserve_acronyms)) return(TRUE)
+
+        # Check for abbreviations with periods (e.g., U.S., U.K., N.Y.)
+        # Pattern: single caps letter followed by period, repeated
+        if (grepl("^([A-Z]\\.)+[A-Z]?\\.?$", clean_word)) return(TRUE)
+
+        # All letters are uppercase (excluding numbers and + sign)
+        letters_only <- gsub("[^a-zA-Z]", "", clean_word)
+        if (nchar(letters_only) >= 2 && letters_only == toupper(letters_only)) {
+            return(TRUE)
+        }
+
+        FALSE
+    }
+
+    # Helper function to check if word is a LaTeX command
+    is_latex_command <- function(word) {
+        grepl("\\\\[a-zA-Z]", word)
+    }
+
+    # Helper function to check if word is a software package name
+    is_software_package <- function(word) {
+        clean_word <- gsub("^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "", word)
+        tolower(clean_word) %in% tolower(software_packages)
     }
 
     # Helper function to capitalize first letter of a word
@@ -106,9 +161,32 @@ to_title_case <- function(text,
             next
         }
 
+        # Preserve LaTeX commands as-is
+        if (is_latex_command(word)) {
+            result_words[i] <- word
+            next
+        }
+
         # Preserve words with internal capitals
         if (has_internal_caps(word)) {
             result_words[i] <- word
+            next
+        }
+
+        # Preserve acronyms (all-caps words)
+        if (is_acronym(word)) {
+            result_words[i] <- word
+            next
+        }
+
+        # Handle software package names (keep lowercase)
+        if (is_software_package(word)) {
+            # Extract punctuation
+            leading_punct <- gsub("^([^a-zA-Z0-9]*).*", "\\1", word)
+            trailing_punct <- gsub(".*[a-zA-Z0-9]([^a-zA-Z0-9]*)$", "\\1", word)
+            if (trailing_punct == word) trailing_punct <- ""
+            core_word <- gsub("^[^a-zA-Z0-9]*|[^a-zA-Z0-9]*$", "", word)
+            result_words[i] <- paste0(leading_punct, tolower(core_word), trailing_punct)
             next
         }
 
@@ -131,8 +209,10 @@ to_title_case <- function(text,
 
     result <- paste(result_words, collapse = " ")
 
-    # Capitalize first word of title
-    result <- sub("^([^a-zA-Z]*)([a-z])", "\\1\\U\\2", result, perl = TRUE)
+    # Capitalize first word of title (but not if it starts with a LaTeX command)
+    if (!grepl("^\\\\[a-zA-Z]", result)) {
+        result <- sub("^([^a-zA-Z]*)([a-z])", "\\1\\U\\2", result, perl = TRUE)
+    }
 
     # Capitalize after sentence-ending punctuation followed by space
     result <- gsub("([:.;?!])\\s+([a-z])", "\\1 \\U\\2", result, perl = TRUE)
@@ -178,9 +258,16 @@ to_title_case <- function(text,
 #' @param clean_locations Logical. If TRUE (default), standardizes location
 #'   names (e.g., "New York, NY" becomes "New York").
 #' @param clean_abbreviations Logical. If TRUE (default), expands common
-#'   publisher abbreviations (e.g., "Pr" becomes "Press").
+#'   publisher abbreviations (e.g., "Pr" becomes "Press") and wraps software
+#'   package names in braces.
 #' @param fields_to_process Character vector of BibTeX field names to process.
 #'   Defaults to c("Title", "Journal", "Publisher", "Booktitle").
+#' @param preserve_acronyms Character vector of acronyms to preserve in
+#'   uppercase. All-caps words are also automatically preserved. Default
+#'   includes common academic acronyms (US, UK, LGBTQ, AIDS, SSRN, etc.).
+#' @param software_packages Character vector of software/package names to
+#'   keep in lowercase and wrap in braces for BibTeX protection. Default
+#'   includes common R packages (stm, mice, ggplot2, tidyverse, etc.).
 #'
 #' @return Invisibly returns the path to the output file
 #' @export
@@ -202,7 +289,23 @@ bib_to_titlecase <- function(input_file,
                              clean_locations = TRUE,
                              clean_abbreviations = TRUE,
                              fields_to_process = c("Title", "Journal",
-                                                   "Publisher", "Booktitle")) {
+                                                   "Publisher", "Booktitle"),
+                             preserve_acronyms = c("US", "UK", "USA", "UN", "EU",
+                                                   "LGBTQ", "LGBTQ+", "LGBT",
+                                                   "HIV", "AIDS", "BET", "AM", "PM",
+                                                   "SSRN", "ICPSR", "CMPS", "NORC",
+                                                   "PS", "NYU", "UCLA", "MIT", "UFW",
+                                                   "NAACP", "CEO", "GDP", "GNP",
+                                                   "FBI", "CIA", "NSA", "NASA",
+                                                   "ANES", "CCES", "NES", "GSS",
+                                                   "ACS", "CPS", "IPUMS"),
+                             software_packages = c("stm", "mice", "ggplot2",
+                                                   "ggridges", "tidyverse", "dplyr",
+                                                   "tidyr", "purrr", "stringr",
+                                                   "lubridate", "forcats", "readr",
+                                                   "brms", "rstan", "lme4", "lavaan",
+                                                   "fixest", "modelsummary", "knitr",
+                                                   "rmarkdown", "shiny", "devtools")) {
 
     if (!file.exists(input_file)) {
         stop("Input file does not exist: ", input_file)
@@ -253,7 +356,9 @@ bib_to_titlecase <- function(input_file,
         suffix <- substring(remaining, attr(content_match, "match.length") + 1)
 
         # Apply title case to content
-        new_content <- to_title_case(content)
+        new_content <- to_title_case(content,
+                                     preserve_acronyms = preserve_acronyms,
+                                     software_packages = software_packages)
 
         # Remove trailing period before closing brace if present
         new_content <- gsub("\\.$", "", new_content)
@@ -285,8 +390,13 @@ bib_to_titlecase <- function(input_file,
         lines <- gsub("Soc'y", "Society", lines)
 
         # R package names should be in braces (lowercase)
-        lines <- gsub("Ggridges", "{ggridges}", lines)
-        lines <- gsub("Ggplot2", "{ggplot2}", lines)
+        # Wrap any that got title-cased back to lowercase with braces
+        for (pkg in software_packages) {
+            # Match capitalized version and replace with braced lowercase
+            pattern <- paste0("\\b", tools::toTitleCase(pkg), "\\b")
+            replacement <- paste0("{", pkg, "}")
+            lines <- gsub(pattern, replacement, lines)
+        }
 
         # Fix LaTeX formatting
         lines <- gsub("\\$\\\\Times\\$", "$\\\\times$", lines)

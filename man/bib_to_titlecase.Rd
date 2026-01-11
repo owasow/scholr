@@ -9,7 +9,15 @@ bib_to_titlecase(
   output_file = NULL,
   clean_locations = TRUE,
   clean_abbreviations = TRUE,
-  fields_to_process = c("Title", "Journal", "Publisher", "Booktitle")
+  fields_to_process = c("Title", "Journal", "Publisher", "Booktitle"),
+  preserve_acronyms = c("US", "UK", "USA", "UN", "EU", "LGBTQ", "LGBTQ+", "LGBT", "HIV",
+    "AIDS", "BET", "AM", "PM", "SSRN", "ICPSR", "CMPS", "NORC", "PS", "NYU", "UCLA",
+    "MIT", "UFW", "NAACP", "CEO", "GDP", "GNP", "FBI", "CIA", "NSA", "NASA", "ANES",
+    "CCES", "NES", "GSS", "ACS", "CPS", "IPUMS"),
+  software_packages = c("stm", "mice", "ggplot2", "ggridges", "tidyverse", "dplyr",
+    "tidyr", "purrr", "stringr", "lubridate", "forcats", "readr", "brms", "rstan",
+    "lme4", "lavaan", "fixest", "modelsummary", "knitr", "rmarkdown", "shiny",
+    "devtools")
 )
 }
 \arguments{
@@ -22,10 +30,19 @@ timestamped file in the same directory as input.}
 names (e.g., "New York, NY" becomes "New York").}
 
 \item{clean_abbreviations}{Logical. If TRUE (default), expands common
-publisher abbreviations (e.g., "Pr" becomes "Press").}
+publisher abbreviations (e.g., "Pr" becomes "Press") and wraps software
+package names in braces.}
 
 \item{fields_to_process}{Character vector of BibTeX field names to process.
 Defaults to c("Title", "Journal", "Publisher", "Booktitle").}
+
+\item{preserve_acronyms}{Character vector of acronyms to preserve in
+uppercase. All-caps words are also automatically preserved. Default
+includes common academic acronyms (US, UK, LGBTQ, AIDS, SSRN, etc.).}
+
+\item{software_packages}{Character vector of software/package names to
+keep in lowercase and wrap in braces for BibTeX protection. Default
+includes common R packages (stm, mice, ggplot2, tidyverse, etc.).}
 }
 \value{
 Invisibly returns the path to the output file

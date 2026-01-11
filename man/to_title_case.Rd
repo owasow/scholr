@@ -7,7 +7,13 @@
 to_title_case(
   text,
   small_words = c("a", "an", "and", "as", "at", "but", "by", "en", "for", "if", "in",
-    "of", "on", "or", "the", "to", "v", "v.", "via", "vs", "vs.", "with")
+    "of", "on", "or", "the", "to", "v", "v.", "via", "vs", "vs.", "with"),
+  preserve_acronyms = c("US", "UK", "USA", "UN", "EU", "LGBTQ", "LGBTQ+", "LGBT", "HIV",
+    "AIDS", "BET", "AM", "PM", "SSRN", "ICPSR", "CMPS", "NORC", "PS", "NYU", "UCLA",
+    "MIT", "UFW", "NAACP", "CEO", "GDP", "GNP", "FBI", "CIA", "NSA", "NASA", "ANES",
+    "CCES", "NES", "GSS", "ACS", "CPS", "IPUMS"),
+  software_packages = c("stm", "mice", "ggplot2", "ggridges", "tidyverse", "dplyr",
+    "tidyr", "purrr", "stringr", "lubridate", "forcats", "readr")
 )
 }
 \arguments{
@@ -15,6 +21,13 @@ to_title_case(
 
 \item{small_words}{Character vector of words to keep lowercase (unless at
 start/end of title). Defaults to NYT style guide list.}
+
+\item{preserve_acronyms}{Character vector of acronyms to preserve in
+uppercase. Default includes common academic acronyms. All-caps words
+are also automatically preserved.}
+
+\item{software_packages}{Character vector of software/package names to
+keep in lowercase and wrap in braces for BibTeX protection.}
 }
 \value{
 Character string in title case
@@ -29,6 +42,9 @@ The function handles several special cases:
 \itemize{
 \item URLs, email addresses, and domains are preserved as-is
 \item Words with internal capitals (e.g., "iPhone", "McDonald's") are preserved
+\item All-caps words are preserved as acronyms (e.g., "US", "LGBTQ")
+\item LaTeX commands (starting with backslash) are preserved
+\item Abbreviations with periods (e.g., "U.S.", "U.K.") are preserved
 \item Small words are capitalized at the start/end of titles and after : ; ? !
 \item Handles text in parentheses, brackets, and quotes appropriately
 }
@@ -37,5 +53,6 @@ The function handles several special cases:
 to_title_case("the quick brown fox")
 to_title_case("a tale of two cities")
 to_title_case("the iPhone: a revolution in mobile technology")
+to_title_case("US policy on LGBTQ rights")
 
 }
