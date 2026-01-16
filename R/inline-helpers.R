@@ -76,7 +76,8 @@ p <- function(model, var, digits = 3) {
     if (pval < 0.001) {
         "< .001"
     } else {
-        paste0("= ", round(pval, digits))
+        formatted <- sprintf(paste0("%.", digits, "f"), pval)
+        paste0("= ", sub("^0", "", formatted))  # APA style: no leading zero
     }
 }
 
