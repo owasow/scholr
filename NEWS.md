@@ -1,3 +1,14 @@
+# scholr 0.3.1
+
+## Bug Fixes
+
+* `convert_labels()` now labels party-ID factor levels correctly. The bare
+  `^pid3` / `^pid7` scale patterns previously shadowed the level-specific rules,
+  so `pid3Republican` came back as "Party ID (3-cat)" instead of a party label.
+  Level patterns now run first, match full-word levels (`Republican`,
+  `Democrat`, `Independent`) as well as abbreviations, and the scale patterns
+  are anchored (`^pid3$`) so they only match the bare numeric variable.
+
 # scholr 0.3.0
 
 ## New Features

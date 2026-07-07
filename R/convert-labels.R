@@ -190,13 +190,15 @@ apply_default_mappings <- function(labs, labs2, labs_norm) {
         stringr::str_detect(labs_norm, "race.*[nN]ative") ~ "Race: Native American",
 
         # Political variables
-        stringr::str_detect(labs_norm, "^pid7") ~ "Party ID (7-point)",
-        stringr::str_detect(labs_norm, "^pid3") ~ "Party ID (3-cat)",
+        # Party-ID factor LEVELS first (abbreviated OR full-word), so the bare
+        # anchored scale patterns below cannot shadow a level like "pid3Republican".
+        stringr::str_detect(labs_norm, "pid.*(Dem|Democrat)$")    ~ "Party: Democrat",
+        stringr::str_detect(labs_norm, "pid.*(Rep|Republican)$")  ~ "Party: Republican",
+        stringr::str_detect(labs_norm, "pid.*(Ind|Independent)$") ~ "Party: Independent",
+        stringr::str_detect(labs_norm, "^pid7$") ~ "Party ID (7-point)",
+        stringr::str_detect(labs_norm, "^pid3$") ~ "Party ID (3-cat)",
         stringr::str_detect(labs_norm, "^ideo7") ~ "Ideology (7-point)",
         stringr::str_detect(labs_norm, "^ideo5") ~ "Ideology (5-point)",
-        stringr::str_detect(labs_norm, "pid.*Dem$") ~ "Party: Democrat",
-        stringr::str_detect(labs_norm, "pid.*Rep$") ~ "Party: Republican",
-        stringr::str_detect(labs_norm, "pid.*Ind$") ~ "Party: Independent",
 
         # Region
         stringr::str_detect(labs_norm, "^west$") ~ "West",
