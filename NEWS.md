@@ -1,3 +1,18 @@
+# scholr 0.3.1
+
+* `set_label_mappings()` now upserts: re-registering a pattern replaces the
+  existing entry instead of prepending a duplicate, so re-sourcing a project
+  dictionary is idempotent.
+* New `fixed = TRUE` argument in `set_label_mappings()`: treat names as exact
+  variable names (regex-escaped and anchored `^name$`) so callers need no
+  regex knowledge.
+* New `set_label_mappings_from_file()`: load a pattern/label dictionary from
+  a TSV or CSV file, keeping label crosswalks as data.
+* New `warn_unmatched` argument in `convert_labels()` and `star_var()`: warn
+  when a displayed term has no mapping, instead of silently passing the raw
+  variable name through to the table.
+* First testthat suite (label registry round-trips).
+
 # scholr 0.3.0
 
 ## New Features

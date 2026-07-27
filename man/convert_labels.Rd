@@ -4,7 +4,12 @@
 \alias{convert_labels}
 \title{Convert Variable Names to Human-Readable Labels}
 \usage{
-convert_labels(model, extracted = FALSE, use_defaults = TRUE)
+convert_labels(
+  model,
+  extracted = FALSE,
+  use_defaults = TRUE,
+  warn_unmatched = FALSE
+)
 }
 \arguments{
 \item{model}{Either a model object (from which terms are extracted via broom::tidy)
@@ -15,6 +20,10 @@ If TRUE, treats \code{model} as a character vector of variable names.}
 
 \item{use_defaults}{Logical. If TRUE (default), apply default mappings for
 common variables after custom mappings.}
+
+\item{warn_unmatched}{Logical. If TRUE, warn listing any term no
+mapping (custom or default) matched -- unmapped raw names otherwise
+reach tables silently.}
 }
 \value{
 Character vector of human-readable labels

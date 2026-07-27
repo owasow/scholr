@@ -29,13 +29,45 @@ NULL
 #'
 #' # Clear all custom mappings
 #' set_label_mappings(list(), append = FALSE)
-set_label_mappings <- function(mappings, append = TRUE) {
+set_label_mappings <- function(mappings, append = TRUE, fixed = FALSE) {
+    if (fixed && length(mappings) > 0) {
+        escaped <- gsub("([][{}()+*^$|\\\\?.])", "\\\\\\1", names(mappings))
+        names(mappings) <- paste0("^", escaped, "$")
+    }
     if (append && exists("custom_mappings", envir = .scholr_env)) {
         existing <- get("custom_mappings", envir = .scholr_env)
+        # Upsert: an incoming pattern replaces any existing entry with the
+        # same pattern, so re-sourcing a project dictionary is idempotent.
+        existing <- existing[!(names(existing) %in% names(mappings))]
         mappings <- c(mappings, existing)
     }
     assign("custom_mappings", mappings, envir = .scholr_env)
     invisible(mappings)
+}
+
+#' Load Label Mappings from a File
+#'
+#' Reads a two-column delimited file (columns \code{pattern} and
+#' \code{label}; TSV or CSV by extension) and registers the mappings via
+#' \code{set_label_mappings()}, so projects can keep their variable-label
+#' dictionary as data.
+#'
+#' @param path Path to a .tsv or .csv file with columns pattern, label.
+#' @param append,fixed Passed to \code{set_label_mappings()}.
+#' @return The registered mappings, invisibly.
+#' @export
+set_label_mappings_from_file <- function(path, append = TRUE, fixed = FALSE) {
+    reader <- if (grepl("\\.csv$", path, ignore.case = TRUE)) {
+        utils::read.csv
+    } else {
+        utils::read.delim
+    }
+    df <- reader(path, stringsAsFactors = FALSE)
+    if (!all(c("pattern", "label") %in% names(df))) {
+        stop("Mapping file must have columns 'pattern' and 'label': ", path)
+    }
+    mappings <- stats::setNames(as.character(df$label), as.character(df$pattern))
+    set_label_mappings(mappings, append = append, fixed = fixed)
 }
 
 #' Get Current Label Mappings
@@ -93,6 +125,9 @@ clear_label_mappings <- function() {
 #'   or a character vector of variable names.
 #' @param extracted Logical. If FALSE (default), extracts terms from model object.
 #'   If TRUE, treats `model` as a character vector of variable names.
+#' @param warn_unmatched Logical. If TRUE, warn listing any term no
+#'   mapping (custom or default) matched -- unmapped raw names otherwise
+#'   reach tables silently.
 #' @param use_defaults Logical. If TRUE (default), apply default mappings for
 
 #'   common variables after custom mappings.
@@ -107,7 +142,8 @@ clear_label_mappings <- function() {
 #' # Set custom mappings first
 #' set_label_mappings(c("^myvar" = "My Custom Variable"))
 #' convert_labels(c("myvar", "age"), extracted = TRUE)
-convert_labels <- function(model, extracted = FALSE, use_defaults = TRUE) {
+convert_labels <- function(model, extracted = FALSE, use_defaults = TRUE,
+                           warn_unmatched = FALSE) {
 
     # Extract variable names
     if (extracted == FALSE) {
@@ -147,6 +183,14 @@ convert_labels <- function(model, extracted = FALSE, use_defaults = TRUE) {
         labs2 <- apply_default_mappings(labs, labs2, labs_norm)
     }
 
+    if (warn_unmatched) {
+        unmatched <- labs_orig[labs2 == labs_orig]
+        if (length(unmatched) > 0) {
+            warning("No label mapping matched: ",
+                    paste(unique(unmatched), collapse = ", "),
+                    call. = FALSE)
+        }
+    }
     return(labs2)
 }
 

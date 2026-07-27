@@ -4,7 +4,7 @@
 \alias{set_label_mappings}
 \title{Set Custom Label Mappings}
 \usage{
-set_label_mappings(mappings, append = TRUE)
+set_label_mappings(mappings, append = TRUE, fixed = FALSE)
 }
 \arguments{
 \item{mappings}{A named list or named character vector where names are

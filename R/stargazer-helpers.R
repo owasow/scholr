@@ -199,6 +199,8 @@ star_nrm <- function(..., type = NULL, digits = 2, star.cutoffs = star_cut_vecto
 #' @param omit Regex pattern of variables to omit from labels. Should match
 #'   the pattern used in your stargazer call's \code{omit} argument.
 #'
+#' @param warn_unmatched Logical. If TRUE, warn listing any displayed term
+#'   that no label mapping matched (passed to \code{convert_labels()}).
 #' @return Character vector of human-readable variable labels suitable for
 #'   use with stargazer's covariate.labels argument.
 #'
@@ -220,7 +222,7 @@ star_nrm <- function(..., type = NULL, digits = 2, star.cutoffs = star_cut_vecto
 #' labels <- star_var(model_fe, omit = "^state_abb")
 #' stargazer(model_fe, covariate.labels = labels, omit = "^state_abb")
 #' }
-star_var <- function(..., omit = NULL) {
+star_var <- function(..., omit = NULL, warn_unmatched = FALSE) {
 
     # Capture the stargazer output as text
     stargazer_output <- utils::capture.output(
@@ -243,7 +245,8 @@ star_var <- function(..., omit = NULL) {
     variable_names <- unname(variable_names)
 
     # Convert to human-readable labels
-    cov_labels <- convert_labels(variable_names, extracted = TRUE)
+    cov_labels <- convert_labels(variable_names, extracted = TRUE,
+                                 warn_unmatched = warn_unmatched)
 
     return(cov_labels)
 }

@@ -4,13 +4,16 @@
 \alias{star_var}
 \title{Extract and Convert Variable Labels from Stargazer}
 \usage{
-star_var(..., omit = NULL)
+star_var(..., omit = NULL, warn_unmatched = FALSE)
 }
 \arguments{
 \item{...}{Models to pass to stargazer}
 
 \item{omit}{Regex pattern of variables to omit from labels. Should match
 the pattern used in your stargazer call's \code{omit} argument.}
+
+\item{warn_unmatched}{Logical. If TRUE, warn listing any displayed term
+that no label mapping matched (passed to \code{convert_labels()}).}
 }
 \value{
 Character vector of human-readable variable labels suitable for
