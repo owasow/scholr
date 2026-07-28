@@ -4,7 +4,7 @@
 \alias{star_var}
 \title{Extract and Convert Variable Labels from Stargazer}
 \usage{
-star_var(..., omit = NULL, warn_unmatched = FALSE)
+star_var(..., omit = NULL, warn_unmatched = FALSE, engine = c("coef", "text"))
 }
 \arguments{
 \item{...}{Models to pass to stargazer}
@@ -14,6 +14,14 @@ the pattern used in your stargazer call's \code{omit} argument.}
 
 \item{warn_unmatched}{Logical. If TRUE, warn listing any displayed term
 that no label mapping matched (passed to \code{convert_labels()}).}
+
+\item{engine}{\code{"coef"} (default) derives the display order directly
+from the models' coefficient names, mirroring stargazer's internal
+merge/order/keep/omit logic -- robust to long variable names and header
+noise, and does not run stargazer at all. \code{"text"} forces the
+legacy behavior of parsing \code{stargazer(type = "text")} output.
+The coef engine falls back to text automatically for model classes
+without a usable \code{coef()} method or for numeric omit/keep indices.}
 }
 \value{
 Character vector of human-readable variable labels suitable for
@@ -31,6 +39,11 @@ When using stargazer's \code{omit} parameter along with
 \code{covariate.labels}, you must ensure the labels don't include entries
 for omitted variables. Pass the same \code{omit} pattern to \code{star_var}
 to generate correctly aligned labels.
+
+Pass the same \code{keep}, \code{order}, \code{omit} (and, if used,
+\code{perl}, \code{intercept.bottom}, \code{intercept.top}) values you
+give the real stargazer call; star_var reproduces the resulting row
+order from the models' coefficients.
 }
 \examples{
 \dontrun{

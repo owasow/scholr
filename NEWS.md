@@ -1,3 +1,23 @@
+# scholr 0.4.0
+
+* `star_var()` no longer parses stargazer's printed text to learn the display
+  order. A new default engine (`engine = "coef"`) derives the displayed
+  covariate rows directly from the models' coefficient names, mirroring
+  stargazer 5.2.3's internal merge, intercept relocation, `order` masking,
+  and `keep`/`omit` logic (including the quirk that `keep` overrides `omit`).
+  Verified against stargazer's actual printed output in the test suite.
+* This fixes two latent bugs in the text-parsing approach: (1) with `keep=`
+  the Constant row is suppressed, so the parser swept summary-statistics
+  lines ("Observations", "R2", "Note:") into the label vector — stargazer
+  silently discarded the excess, hiding the misalignment risk; (2) models
+  built from paste()-constructed formulas leaked deparsed-call header junk
+  into the first label.
+* The legacy parser remains available via `engine = "text"` and is used
+  automatically for model classes without a usable `coef()` method and for
+  numeric `omit`/`keep` indices.
+* `star_var()` also runs faster: it no longer executes stargazer twice per
+  table.
+
 # scholr 0.3.1
 
 * `set_label_mappings()` now upserts: re-registering a pattern replaces the
