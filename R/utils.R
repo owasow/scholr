@@ -165,7 +165,7 @@ pseudo <- function(model_list) {
     if (!requireNamespace("pscl", quietly = TRUE)) {
         stop("Package 'pscl' is required for pseudo(). Install with install.packages('pscl')")
     }
-    purrr::map_dbl(model_list, function(x) as.numeric(pscl::pR2(x)[[6]])) %>%
-        round(digits = 2) %>%
+    purrr::map_dbl(model_list, function(x) as.numeric(pscl::pR2(x)[[6]])) |>
+        round(digits = 2) |>
         format(nsmall = 2)
 }

@@ -206,7 +206,7 @@ z <- function(model, var, digits = 2) {
 #' @param digits Number of decimal places (default: 2)
 #' @param exp Logical; if TRUE, exponentiate for odds ratio CI (default: FALSE)
 #'
-#' @return Character string in format "[lower, upper]"
+#' @return Character string in format \code{[lower, upper]}
 #' @export
 #'
 #' @examples

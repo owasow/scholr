@@ -61,6 +61,24 @@ to_title_case <- function(text,
                                                 "tidyr", "purrr", "stringr",
                                                 "lubridate", "forcats", "readr")) {
 
+    if (!is.character(text)) {
+        stop("`text` must be a character vector.", call. = FALSE)
+    }
+
+    vapply(
+        text,
+        .to_title_case_one,
+        character(1),
+        USE.NAMES = FALSE,
+        small_words = small_words,
+        preserve_acronyms = preserve_acronyms,
+        software_packages = software_packages
+    )
+}
+
+.to_title_case_one <- function(text, small_words, preserve_acronyms,
+                               software_packages) {
+
     if (is.na(text) || text == "") return(text)
 
     # Helper function to check if a word looks like a URL/email/domain
@@ -285,10 +303,10 @@ to_title_case <- function(text,
 #'
 #' @examples
 #' protect_caps_for_csl("The Effect of U.S. Policy on R Users")
-#' # Returns: "The Effect of {U.S.} Policy on {R} Users"
+#' # Protects U.S. and R with BibTeX braces.
 #'
 #' protect_caps_for_csl("COVID-19 and AIDS Research")
-#' # Returns: "{COVID}-19 and {AIDS} Research"
+#' # Protects COVID and AIDS with BibTeX braces.
 #'
 protect_caps_for_csl <- function(text,
                                  protect_dotted = TRUE,

@@ -16,7 +16,8 @@ NULL
 #' @param mappings A named list or named character vector where names are
 #'   regex patterns and values are the replacement labels.
 #' @param append If TRUE (default), add to existing mappings. If FALSE,
-#'   replace all custom mappings.
+#'   replace all custom mappings. New mappings take precedence over existing
+#'   mappings with the same pattern.
 #'
 #' @export
 #' @examples
@@ -30,9 +31,50 @@ NULL
 #' # Clear all custom mappings
 #' set_label_mappings(list(), append = FALSE)
 set_label_mappings <- function(mappings, append = TRUE) {
+    if (!is.logical(append) || length(append) != 1L || is.na(append)) {
+        stop("`append` must be a single TRUE or FALSE value.", call. = FALSE)
+    }
+
+    if (!is.character(mappings) && !is.list(mappings)) {
+        stop("`mappings` must be a named character vector or list.", call. = FALSE)
+    }
+
+    if (length(mappings) > 0L) {
+        mapping_names <- names(mappings)
+        if (is.null(mapping_names) || anyNA(mapping_names) || any(!nzchar(mapping_names))) {
+            stop("Every mapping must have a non-empty regex pattern as its name.", call. = FALSE)
+        }
+        if (anyDuplicated(mapping_names)) {
+            stop("Mapping patterns must be unique within each call.", call. = FALSE)
+        }
+        if (is.list(mappings) && any(lengths(mappings) != 1L)) {
+            stop("Every mapping must have exactly one replacement value.", call. = FALSE)
+        }
+        mappings <- unlist(mappings, use.names = TRUE)
+        if (!is.character(mappings) || anyNA(mappings)) {
+            stop("Every mapping replacement must be a non-missing character value.", call. = FALSE)
+        }
+
+        invalid <- vapply(names(mappings), function(pattern) {
+            inherits(
+                suppressWarnings(try(grepl(pattern, "", perl = TRUE), silent = TRUE)),
+                "try-error"
+            )
+        }, logical(1))
+        if (any(invalid)) {
+            stop(
+                "Invalid regular expression: ", names(mappings)[which(invalid)[1L]],
+                call. = FALSE
+            )
+        }
+    } else {
+        mappings <- character()
+    }
+
     if (append && exists("custom_mappings", envir = .scholr_env)) {
         existing <- get("custom_mappings", envir = .scholr_env)
         mappings <- c(mappings, existing)
+        mappings <- mappings[!duplicated(names(mappings))]
     }
     assign("custom_mappings", mappings, envir = .scholr_env)
     invisible(mappings)
@@ -115,9 +157,6 @@ convert_labels <- function(model, extracted = FALSE, use_defaults = TRUE) {
     } else {
         labs <- model
     }
-
-    # Store original for fallback
-    labs_orig <- labs
 
     # Normalize to handle wave suffixes
     labs_norm <- .norm_strip_wave(labs)

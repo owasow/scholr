@@ -16,7 +16,7 @@ ci95(model, var, digits = 2, exp = FALSE)
 \item{exp}{Logical; if TRUE, exponentiate for odds ratio CI (default: FALSE)}
 }
 \value{
-Character string in format "\link{lower, upper}"
+Character string in format \code{[lower, upper]}
 }
 \description{
 Computes and formats a 95\% confidence interval for a coefficient.

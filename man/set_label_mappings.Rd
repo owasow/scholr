@@ -11,7 +11,8 @@ set_label_mappings(mappings, append = TRUE)
 regex patterns and values are the replacement labels.}
 
 \item{append}{If TRUE (default), add to existing mappings. If FALSE,
-replace all custom mappings.}
+replace all custom mappings. New mappings take precedence over existing
+mappings with the same pattern.}
 }
 \description{
 Register project-specific variable name to label mappings. These take

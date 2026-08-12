@@ -58,8 +58,8 @@ tc_count <- function(file = NULL, include_bib = TRUE, include_headers = FALSE) {
     }
 
     # Check texcount is available
-    tc_check <- suppressWarnings(system("which texcount", intern = TRUE, ignore.stderr = TRUE))
-    if (length(tc_check) == 0 || !nzchar(tc_check)) {
+    texcount <- Sys.which("texcount")
+    if (!nzchar(texcount)) {
         warning("texcount not found. Install TeX distribution or texcount separately.")
         return(list(
             text = NA,
@@ -71,14 +71,30 @@ tc_count <- function(file = NULL, include_bib = TRUE, include_headers = FALSE) {
         ))
     }
 
-    # Build command
-    cmd <- paste("texcount -inc -total -sum", shQuote(file))
-    if (include_bib) {
-        cmd <- paste("texcount -inc -incbib -total -sum", shQuote(file))
+    # Pass the executable separately and quote the path as one safe argument.
+    args <- c("-inc", "-total", "-sum")
+    if (include_bib) args <- c("-inc", "-incbib", "-total", "-sum")
+    tc_out <- suppressWarnings(system2(
+        texcount,
+        args = c(args, shQuote(file)),
+        stdout = TRUE,
+        stderr = TRUE
+    ))
+    status <- attr(tc_out, "status")
+    if (!is.null(status) && status != 0L) {
+        warning(
+            "texcount failed with status ", status, ":\n",
+            paste(tc_out, collapse = "\n")
+        )
+        return(list(
+            text = NA,
+            headers = NA,
+            outside = NA,
+            total = NA,
+            total_formatted = "[texcount failed]",
+            raw = tc_out
+        ))
     }
-
-    # Run texcount
-    tc_out <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
 
     # Parse output
     extract_count <- function(pattern) {

@@ -54,3 +54,11 @@ This function adds BibTeX braces around terms that need protection:
 The braces tell BibTeX (and some CSL processors) to preserve the exact
 capitalization.
 }
+\examples{
+protect_caps_for_csl("The Effect of U.S. Policy on R Users")
+# Protects U.S. and R with BibTeX braces.
+
+protect_caps_for_csl("COVID-19 and AIDS Research")
+# Protects COVID and AIDS with BibTeX braces.
+
+}
