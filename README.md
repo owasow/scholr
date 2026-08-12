@@ -11,7 +11,8 @@ devtools::install_github("owasow/scholr")
 ## Features
 
 - **Auto-detect output format**: Functions automatically detect whether you're rendering to PDF (LaTeX), HTML, or text and adjust accordingly
-- **Stargazer wrappers**: `star0()`, `star_ft()`, `star_sm()`, etc. with sensible defaults
+- **Stargazer wrappers**: Ready-made table styles for compact output, omitted
+  fixed effects, different font sizes, and odds ratios
 - **Variable label conversion**: `convert_labels()` translates technical variable names to human-readable labels
 - **Customizable mappings**: Register project-specific variable name mappings with `set_label_mappings()`
 - **Kable helpers**: `kable0()`, `kable_striped()`, `kable_scaled()` with consistent styling
@@ -27,12 +28,86 @@ library(scholr)
 
 # Basic regression table with auto-detected format
 model <- lm(mpg ~ wt + hp + cyl, data = mtcars)
-star0(model)
+star_compact(model)
 
 # Extract and convert variable labels
 labels <- star_var(model)
-star_ft(model, covariate.labels = labels)
+star_compact(model, covariate.labels = labels)
 ```
+
+## Stargazer Wrappers
+
+The wrappers share several publication-oriented defaults: they detect LaTeX,
+HTML, or text output automatically; suppress the standalone LaTeX header; align
+columns; use one significance threshold (`p < 0.05`); and replace stargazer's
+default notes with a concise note.
+
+| Function | Digits | LaTeX font | Distinctive behavior | Use it when |
+|---|---:|---|---|---|
+| `star_compact()` | 3 | `scriptsize` | Supports coefficient/statistic omission and custom notes | You want the standard compact scholr table |
+| `star_small()` | 2 | `small` | Uses a larger font and fewer digits | The table is short enough to prioritize readability |
+| `star_normal()` | 2 | normal | Uses Stargazer's normal font | The table is short and space is not constrained |
+| `star_or()` | 3 | Stargazer default | Shows GLM odds ratios with delta-method SEs | You are reporting logistic-model odds ratios |
+
+### `star_compact()`: standard table
+
+```r
+model <- lm(mpg ~ wt + hp + cyl, data = mtcars)
+star_compact(model)
+
+# Override any stargazer option through ...
+star_compact(model, title = "Fuel Economy Models", dep.var.labels = "MPG")
+```
+
+Use `omit` to hide coefficient groups such as fixed effects, `omit.stat` to hide
+model statistics, and `notes` to replace the default table note:
+
+```r
+model_fe <- lm(mpg ~ wt + hp + factor(cyl), data = mtcars)
+
+star_compact(
+    model_fe,
+    omit = "^factor\\(cyl\\)",
+    notes = "Cylinder fixed effects included. *p < 0.05"
+)
+
+# Replacement for the old star1() helper
+star_normal(model, omit.stat = "theta")
+```
+
+When supplying `covariate.labels`, pass the same omission pattern to
+`star_var()` so labels remain aligned:
+
+```r
+labels <- star_var(model_fe, omit = "^factor\\(cyl\\)")
+star_compact(model_fe, omit = "^factor\\(cyl\\)", covariate.labels = labels)
+```
+
+### `star_small()` and `star_normal()`: more readable tables
+
+Both use two digits rather than three. `star_small()` uses LaTeX's `small` font;
+`star_normal()` leaves the font at Stargazer's normal size.
+
+```r
+star_small(model, title = "Fuel Economy")
+star_normal(model, title = "Fuel Economy")
+```
+
+Font-size settings affect LaTeX output; HTML and text output still benefit from
+the wrapper's other defaults.
+
+### Deprecated wrapper names
+
+The old names remain functional so existing documents continue to render, but
+they emit deprecation warnings:
+
+| Old name | Replacement |
+|---|---|
+| `star0()` | `star_compact()` |
+| `star_ft()` | `star_compact()` |
+| `star_sm()` | `star_small()` |
+| `star_nrm()` | `star_normal()` |
+| `star1()` | `star_normal(..., omit.stat = "theta")` |
 
 ## Custom Label Mappings
 
@@ -240,11 +315,11 @@ For GLM models with odds ratios and delta-method standard errors:
 ```r
 m <- glm(am ~ wt + hp, data = mtcars, family = binomial)
 
-# Log-odds (default)
-stargazer2(m)
+# Odds ratios with delta-method SEs (default)
+star_or(m)
 
-# Odds ratios with correct SEs
-stargazer2(m, odds.ratio = TRUE)
+# Log-odds, when needed
+star_or(m, odds.ratio = FALSE)
 ```
 
 For mixed-effects models (glmer), use `star_glmer()` instead.

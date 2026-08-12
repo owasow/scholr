@@ -1,5 +1,14 @@
 # scholr 0.3.1
 
+## Improvements
+
+* Added `star_or()` as the clearly named wrapper for GLM odds-ratio tables.
+  `stargazer2()` remains available as a deprecated compatibility wrapper.
+
+* Replaced opaque table-style names with `star_compact()`, `star_small()`, and
+  `star_normal()`. The legacy `star0()`, `star_ft()`, `star_sm()`, `star_nrm()`,
+  and `star1()` functions remain available as deprecated compatibility wrappers.
+
 ## Bug Fixes
 
 * `convert_labels()` now labels party-ID factor levels correctly. The bare

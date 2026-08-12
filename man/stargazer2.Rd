@@ -2,14 +2,16 @@
 % Please edit documentation in R/stargazer-helpers.R
 \name{stargazer2}
 \alias{stargazer2}
-\title{Stargazer with Odds Ratios (GLM)}
+\title{Deprecated Stargazer GLM Wrapper}
 \usage{
 stargazer2(model_list, odds.ratio = FALSE, ...)
 }
 \arguments{
 \item{model_list}{A model or list of models}
 
-\item{odds.ratio}{Logical; if TRUE, exponentiate coefficients (default: FALSE)}
+\item{odds.ratio}{Logical; if TRUE, exponentiate coefficients. Defaults to
+FALSE for backward compatibility. New code should use \code{star_or()},
+where the default is TRUE.}
 
 \item{...}{Additional arguments passed to stargazer}
 }
@@ -17,13 +19,8 @@ stargazer2(model_list, odds.ratio = FALSE, ...)
 Stargazer output
 }
 \description{
-Wrapper for stargazer that displays odds ratios with delta-method
-standard errors for GLM models. For mixed models (glmer), use
-\code{star_glmer()} instead.
+\code{stargazer2()} has been renamed to \code{star_or()} to make its purpose
+clear. It remains available for compatibility and preserves its original
+default of \code{odds.ratio = FALSE}.
 }
-\examples{
-\dontrun{
-m <- glm(am ~ wt + hp, data = mtcars, family = binomial)
-stargazer2(m, odds.ratio = TRUE)
-}
-}
+\keyword{internal}

@@ -21,11 +21,16 @@ star_cut_vector <- c(0.05, NA, NA)
 #' @export
 star_cut_three <- c(0.05, 0.01, 0.001)
 
-#' Basic Stargazer Wrapper
+#' Standard Compact Stargazer Table
 #'
-#' Stargazer with sensible defaults: auto-detected format, no header,
-#' scriptsize font, single significance star at p < 0.05. Supports odds
-#' ratios for GLM models when \code{model} is provided as a named argument.
+#' General-purpose wrapper that auto-detects the output format, suppresses the
+#' standalone LaTeX header, aligns columns, displays three digits, uses
+#' \code{scriptsize} for LaTeX, and reports a single significance threshold at
+#' p < 0.05. Use this for the standard compact scholr regression table.
+#'
+#' For ordinary tables, pass one or more models through \code{...}. The named
+#' \code{model} argument enables optional odds-ratio transformation for GLMs;
+#' new code focused on odds ratios should generally use \code{star_or()}.
 #'
 #' @param ... Arguments passed to stargazer
 #' @param model A model or list of models. Use this named argument (instead of
@@ -34,21 +39,27 @@ star_cut_three <- c(0.05, 0.01, 0.001)
 #'   coefficients to display odds ratios with delta-method standard errors.
 #' @param type Output format. If NULL (default), auto-detected.
 #' @param digits Number of digits to display
-#' @param star.cutoffs Significance cutoffs
+#' @param star.cutoffs Significance cutoffs.
+#' @param omit Optional regex pattern for coefficients to omit.
+#' @param omit.stat Optional character vector of model statistics to omit.
+#' @param notes Custom table note.
+#' @param font.size LaTeX font size. Defaults to \code{"scriptsize"}.
 #'
 #' @export
 #' @examples
 #' \dontrun{
 #' # Basic usage
 #' model <- lm(mpg ~ wt + hp, data = mtcars)
-#' star0(model)
+#' star_compact(model)
 #'
-#' # With odds ratios for logistic regression
-#' m <- glm(am ~ wt + hp, data = mtcars, family = binomial)
-#' star0(model = m, odds.ratio = TRUE)
+#' # Hide fixed-effect coefficients while retaining them in the model
+#' model_fe <- lm(mpg ~ wt + hp + factor(cyl), data = mtcars)
+#' star_compact(model_fe, omit = "^factor\\(cyl\\)")
 #' }
-star0 <- function(..., model = NULL, odds.ratio = FALSE, type = NULL,
-                  digits = 3, star.cutoffs = star_cut_vector) {
+star_compact <- function(..., model = NULL, odds.ratio = FALSE, type = NULL,
+                         digits = 3, star.cutoffs = star_cut_vector,
+                         omit = NULL, omit.stat = NULL,
+                         notes = "*$p<0.05$", font.size = "scriptsize") {
     if (is.null(type)) type <- get_star_format()
 
     # Common stargazer options
@@ -57,11 +68,13 @@ star0 <- function(..., model = NULL, odds.ratio = FALSE, type = NULL,
         header = FALSE,
         type = type,
         align = TRUE,
-        font.size = 'scriptsize',
         star.cutoffs = star.cutoffs,
         notes.append = FALSE,
-        notes = "*$p<0.05$"
+        notes = notes,
+        omit = omit,
+        omit.stat = omit.stat
     )
+    if (!is.null(font.size)) star_opts$font.size <- font.size
 
     # Handle model passed as named argument (for odds.ratio support)
     if (!is.null(model)) {
@@ -95,95 +108,114 @@ star0 <- function(..., model = NULL, odds.ratio = FALSE, type = NULL,
     }
 }
 
-#' Stargazer Wrapper (Simplified)
+#' Stargazer Table with Small LaTeX Font
 #'
-#' Like star0 but omits theta statistic (useful for negative binomial models).
+#' Readability-oriented variant of \code{star_compact()} that uses LaTeX's
+#' \code{small} font and displays two digits. Font size only affects LaTeX.
 #'
-#' @inheritParams star0
+#' @inheritParams star_compact
 #' @export
-star1 <- function(..., type = NULL, digits = 2, star.cutoffs = star_cut_vector) {
-    if (is.null(type)) type <- get_star_format()
-
-    stargazer::stargazer(
-        ...,
-        digits = digits,
-        header = FALSE,
-        type = type,
-        align = TRUE,
-        omit.stat = c("theta"),
-        star.cutoffs = star.cutoffs,
-        notes.append = FALSE,
-        notes = "*$p<0.05$"
+#' @examples
+#' \dontrun{
+#' model <- lm(mpg ~ wt + hp, data = mtcars)
+#' star_small(model, title = "Fuel Economy")
+#' }
+star_small <- function(..., model = NULL, odds.ratio = FALSE, type = NULL,
+                       digits = 2, star.cutoffs = star_cut_vector,
+                       omit = NULL, omit.stat = NULL,
+                       notes = "*$p<0.05$") {
+    star_compact(
+        ..., model = model, odds.ratio = odds.ratio, type = type,
+        digits = digits, star.cutoffs = star.cutoffs, omit = omit,
+        omit.stat = omit.stat, notes = notes, font.size = "small"
     )
 }
 
-#' Stargazer with Omit Pattern
+#' Stargazer Table with Normal LaTeX Font
 #'
-#' Stargazer wrapper with an omit parameter for filtering variables.
+#' Readability-oriented variant of \code{star_compact()} that uses Stargazer's
+#' normal LaTeX font and displays two digits. Font size only affects LaTeX.
 #'
-#' @inheritParams star0
-#' @param omit Regex pattern of variables to omit from output
-#' @param notes Custom notes string
+#' @inheritParams star_compact
+#' @export
+#' @examples
+#' \dontrun{
+#' model <- lm(mpg ~ wt + hp, data = mtcars)
+#' star_normal(model, title = "Fuel Economy")
+#' }
+star_normal <- function(..., model = NULL, odds.ratio = FALSE, type = NULL,
+                        digits = 2, star.cutoffs = star_cut_vector,
+                        omit = NULL, omit.stat = NULL,
+                        notes = "*$p<0.05$") {
+    star_compact(
+        ..., model = model, odds.ratio = odds.ratio, type = type,
+        digits = digits, star.cutoffs = star.cutoffs, omit = omit,
+        omit.stat = omit.stat, notes = notes, font.size = NULL
+    )
+}
+
+#' Deprecated Stargazer Wrapper Names
 #'
+#' These legacy names remain available for compatibility. Use
+#' \code{star_compact()}, \code{star_small()}, or \code{star_normal()} in new
+#' code. Replace \code{star1(...)} with
+#' \code{star_normal(..., omit.stat = "theta")}.
+#'
+#' @inheritParams star_compact
+#' @name deprecated-star-wrappers
+#' @keywords internal
+NULL
+
+#' @rdname deprecated-star-wrappers
+#' @export
+star0 <- function(..., model = NULL, odds.ratio = FALSE, type = NULL,
+                  digits = 3, star.cutoffs = star_cut_vector) {
+    .Deprecated("star_compact")
+    star_compact(
+        ..., model = model, odds.ratio = odds.ratio, type = type,
+        digits = digits, star.cutoffs = star.cutoffs
+    )
+}
+
+#' @rdname deprecated-star-wrappers
 #' @export
 star_ft <- function(..., type = NULL, omit = NULL, notes = "*$p<0.05$",
                     digits = 3, star.cutoffs = star_cut_vector) {
-    if (is.null(type)) type <- get_star_format()
-
-    stargazer::stargazer(
-        ...,
-        digits = digits,
-        header = FALSE,
-        type = type,
-        align = TRUE,
-        font.size = 'scriptsize',
-        star.cutoffs = star.cutoffs,
-        notes.append = FALSE,
-        omit = omit,
-        notes = notes
+    .Deprecated("star_compact")
+    star_compact(
+        ..., type = type, digits = digits, star.cutoffs = star.cutoffs,
+        omit = omit, notes = notes
     )
 }
 
-#' Stargazer with Small Font
-#'
-#' Stargazer wrapper using small font size instead of scriptsize.
-#'
-#' @inheritParams star0
+#' @rdname deprecated-star-wrappers
 #' @export
-star_sm <- function(..., type = NULL, digits = 2, star.cutoffs = star_cut_vector) {
-    if (is.null(type)) type <- get_star_format()
-
-    stargazer::stargazer(
-        ...,
-        digits = digits,
-        header = FALSE,
-        type = type,
-        align = TRUE,
-        font.size = 'small',
-        star.cutoffs = star.cutoffs,
-        notes.append = FALSE,
-        notes = "*$p<0.05$"
+star_sm <- function(..., type = NULL, digits = 2,
+                    star.cutoffs = star_cut_vector) {
+    .Deprecated("star_small")
+    star_small(
+        ..., type = type, digits = digits, star.cutoffs = star.cutoffs
     )
 }
 
-#' Stargazer with Normal Font
-#'
-#' Stargazer wrapper using default (normal) font size.
-#'
-#' @inheritParams star0
+#' @rdname deprecated-star-wrappers
 #' @export
-star_nrm <- function(..., type = NULL, digits = 2, star.cutoffs = star_cut_vector) {
-    if (is.null(type)) type <- get_star_format()
+star_nrm <- function(..., type = NULL, digits = 2,
+                     star.cutoffs = star_cut_vector) {
+    .Deprecated("star_normal")
+    star_normal(
+        ..., type = type, digits = digits, star.cutoffs = star.cutoffs
+    )
+}
 
-    stargazer::stargazer(
-        ...,
-        digits = digits,
-        header = FALSE,
-        type = type,
-        align = TRUE,
-        star.cutoffs = star.cutoffs,
-        notes.append = FALSE,
-        notes = "*$p<0.05$"
+#' @rdname deprecated-star-wrappers
+#' @export
+star1 <- function(..., type = NULL, digits = 2,
+                  star.cutoffs = star_cut_vector) {
+    .Deprecated("star_normal")
+    star_normal(
+        ..., type = type, digits = digits, star.cutoffs = star.cutoffs,
+        omit.stat = "theta"
     )
 }
 
@@ -255,7 +287,7 @@ star_var <- function(..., omit = NULL) {
 #' \code{star_glmer()} instead.
 #'
 #' @param model_list A model or list of models
-#' @param odds.ratio Logical; if TRUE, exponentiate coefficients (default: FALSE)
+#' @param odds.ratio Logical; if TRUE (default), exponentiate coefficients.
 #' @param ... Additional arguments passed to stargazer
 #'
 #' @return Stargazer output
@@ -263,9 +295,9 @@ star_var <- function(..., omit = NULL) {
 #' @examples
 #' \dontrun{
 #' m <- glm(am ~ wt + hp, data = mtcars, family = binomial)
-#' stargazer2(m, odds.ratio = TRUE)
+#' star_or(m)
 #' }
-stargazer2 <- function(model_list, odds.ratio = FALSE, ...) {
+star_or <- function(model_list, odds.ratio = TRUE, ...) {
     if (!inherits(model_list, "list")) model_list <- list(model_list)
 
     if (odds.ratio) {
@@ -278,4 +310,22 @@ stargazer2 <- function(model_list, odds.ratio = FALSE, ...) {
     } else {
         stargazer::stargazer(model_list, ...)
     }
+}
+
+#' Deprecated Stargazer GLM Wrapper
+#'
+#' \code{stargazer2()} has been renamed to \code{star_or()} to make its purpose
+#' clear. It remains available for compatibility and preserves its original
+#' default of \code{odds.ratio = FALSE}.
+#'
+#' @inheritParams star_or
+#' @param odds.ratio Logical; if TRUE, exponentiate coefficients. Defaults to
+#'   FALSE for backward compatibility. New code should use \code{star_or()},
+#'   where the default is TRUE.
+#' @return Stargazer output
+#' @export
+#' @keywords internal
+stargazer2 <- function(model_list, odds.ratio = FALSE, ...) {
+    .Deprecated("star_or")
+    star_or(model_list, odds.ratio = odds.ratio, ...)
 }
